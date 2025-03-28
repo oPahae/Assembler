@@ -1,0 +1,16 @@
+[27-Feb-2025 16:01:32 Europe/Berlin] Token reçu: eyJhbGciOiJSUzI1NiIs...
+[27-Feb-2025 16:01:33 Europe/Berlin] Données Google récupérées pour: ioryiron07170@gmail.com
+[27-Feb-2025 16:01:33 Europe/Berlin] PHP Warning:  Undefined variable $pdo in C:\xampp\htdocs\Assembler\controllers\google.php on line 57
+[27-Feb-2025 16:01:33 Europe/Berlin] PHP Fatal error:  Uncaught Error: Call to undefined method User::getByEmail() in C:\xampp\htdocs\Assembler\controllers\google.php:58
+Stack trace:
+#0 {main}
+  thrown in C:\xampp\htdocs\Assembler\controllers\google.php on line 58
+[27-Feb-2025 16:02:54 Europe/Berlin] Token reçu: eyJhbGciOiJSUzI1NiIs...
+[27-Feb-2025 16:02:54 Europe/Berlin] Données Google récupérées pour: ioryiron07170@gmail.com
+[27-Feb-2025 16:02:54 Europe/Berlin] PHP Warning:  Undefined variable $pdo in C:\xampp\htdocs\Assembler\controllers\google.php on line 57
+[27-Feb-2025 16:02:54 Europe/Berlin] PHP Fatal error:  Uncaught Error: Call to a member function prepare() on null in C:\xampp\htdocs\Assembler\models\User.php:143
+Stack trace:
+#0 C:\xampp\htdocs\Assembler\controllers\google.php(58): User->getByEmail('ioryiron07170@g...')
+#1 {main}
+  thrown in C:\xampp\htdocs\Assembler\models\User.php on line 143
+[27-Feb-2025 16:05:48 Europe/Berlin] Google auth error: Database connection failed
