@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Project Analytics</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="home.css">
+  <style>
+    body {
+      background: none;
+    }
+    .chart-text {
+      color: white !important;
+    }
+  </style>
+</head>
+
+<body class="h-screen flex items-start justify-center">
+  <div class="flex justify-center items-center flex-wrap gap-6">
+    <!-- Pie Chart -->
+    <div class="p-4 rounded-xl flex flex-col items-center grow">
+      <h2 class="text-lg font-semibold text-gray-800 text-center mb-2">Task Distribution</h2>
+      <div class="w-full h-64 flex justify-center items-center">
+        <canvas id="taskPieChart"></canvas>
+      </div>
+    </div>
+
+    <!-- Bar Chart -->
+    <div class="p-4 rounded-xl flex flex-col items-center grow">
+      <h2 class="text-lg font-semibold text-gray-800 text-center mb-2">Tasks Per User</h2>
+      <div class="w-full h-64 flex justify-center items-center">
+        <canvas id="taskBarChart"></canvas>
+      </div>
+    </div>
+
+    <!-- Line Chart -->
+    <div class="p-4 rounded-xl flex flex-col items-center grow">
+      <h2 class="text-lg font-semibold text-gray-800 text-center mb-2">Tasks Over Time</h2>
+      <div class="w-full h-64 flex justify-center items-center">
+        <canvas id="taskLineChart"></canvas>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const params = new URLSearchParams(window.location.search);
+    const projectID = params.get("projectID");
+
+    if (!projectID) {
+      alert("Project ID is required!");
+    } else {
+      fetch(`../../controllers/getStats.php?projectID=${projectID}`)
+        .then(response => response.json())
+        .then(data => {
+          if (data.error) {
+            alert("Error: " + data.error);
+            return;
+          }
+
+          // Pie Chart: Task distribution
+          new Chart(document.getElementById("taskPieChart"), {
+            type: "pie",
+            data: {
+              labels: data.tasks.map(t => t.status),
+              datasets: [{
+                data: data.tasks.map(t => t.count),
+                backgroundColor: ["#3498db", "#f39c12", "#2ecc71"],
+                hoverOffset: 10
+              }]
+            }
+          });
+
+          // Bar Chart: Tasks per user
+          new Chart(document.getElementById("taskBarChart"), {
+            type: "bar",
+            data: {
+              labels: data.userTasks.map(user => user.firstname),
+              datasets: [{
+                label: "Tasks Assigned",
+                data: data.userTasks.map(user => user.taskCount),
+                backgroundColor: "#3498db"
+              }]
+            },
+            options: {
+              responsive: true,
+              maintainAspectRatio: false,
+              scales: { y: { beginAtZero: true } }
+            }
+          });
+
+          // Line Chart: Tasks over time
+          new Chart(document.getElementById("taskLineChart"), {
+            type: "line",
+            data: {
+              labels: data.tasksOverTime.map(task => task.date),
+              datasets: [{
+                label: "Tasks Created",
+                data: data.tasksOverTime.map(task => task.count),
+                borderColor: "#2ecc71",
+                backgroundColor: "rgba(46, 204, 113, 0.2)",
+                fill: true,
+                tension: 0.3
+              }]
+            },
+            options: {
+              responsive: true,
+              maintainAspectRatio: false,
+              scales: { y: { beginAtZero: true } }
+            }
+          });
+        })
+        .catch(error => console.error("Error loading statistics:", error));
+    }
+  </script>
+
+</body>
+
+</html>

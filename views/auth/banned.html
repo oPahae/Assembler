@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🚫 Accès Refusé</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        history.pushState(null, null, location.href);
+        window.onpopstate = function () {
+            history.go(1);
+        };
+    </script>
+</head>
+<body class="flex justify-center items-center h-screen bg-[red] text-white">
+    <div class="bg-transparent border-b border-white p-8 rounded-lg shadow-xl text-center">
+        <div class="text-6xl text-yellow-500">🚫</div>
+        <h1 class="text-2xl mt-4">Access Denied</h1>
+        <p class="mt-4 text-xl">You are banned from using this website</p>
+        <a href="https://www.google.com" class="inline-block mt-6 px-6 py-2 bg-black text-white rounded-md text-lg transition duration-300 hover:bg-red-700">Leave</a>
+    </div>
+</body>
+</html>

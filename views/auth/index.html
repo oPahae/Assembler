@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Authentication</title>
+    <style>
+        body {
+            width: 100%;
+            height: 100vh;
+            background: url('../../public/bg2.jpg') fixed no-repeat;
+            background-size: cover;
+            background-position: center;
+            backdrop-filter: blur(10px);
+            position: relative;
+            padding: 0;
+            margin: 0;
+        }
+    
+        body::before {
+            content: "";
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.3);
+            z-index: -1;
+        }
+        * {
+            scrollbar-width: none;
+        }
+        iframe {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+        }
+    </style>
+</head>
+<body>
+    <iframe src="login.html" frameborder="0"></iframe>
+</body>
+<script>
+    let session = null
+    fetch('../../lib/session.php').then(res => res.json()).then(data => {
+        if(data.status === 'success') session = data.user
+        if(session) window.parent.location.href = '../home/'
+    }).catch(err => '../auth/')
+</script>
+</html>

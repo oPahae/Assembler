@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Register - Student</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+</head>
+<style>
+    body {
+      background-color: transparent;
+    }
+
+    * {
+        scrollbar-width: none;
+    }
+
+    input:focus,
+    select:focus {
+        transform: scale(1.05);
+        box-shadow: 0 0 15px rgba(255, 255, 255, 0.4);
+    }
+</style>
+
+<body class="m-0 box-border text-white tracking-wider">
+    <section class="flex justify-center items-center h-screen">
+        <div class="relative w-[28rem] h-fit overflow-hidden">
+            <div
+                class="summon border border-gray-400/20 shadow-[0_0_36px_1px_rgba(0,0,0,0.2)] rounded-lg backdrop-blur-[20px] z-10 p-8">
+                <h1 class="text-4xl opacity-60 text-center">REGISTER</h1>
+                <div class="w-full bg-gray-300 h-2 rounded-full my-4">
+                    <div id="progress-bar"
+                        class="h-full bg-gradient-to-r from-[#6a11cb] to-[#2575fc] rounded-full duration-500"
+                        style="width: 0%;"></div>
+                </div>
+                <form id="register-form">
+                    <div class="step">
+                        <input type="text" placeholder="First Name" name="firstname"
+                            class="block w-full p-[14.5px] my-8 bg-[#9191911f] rounded-md text-white" />
+                    </div>
+                    <div class="step hidden">
+                        <input type="text" placeholder="Last Name" name="lastname"
+                            class="block w-full p-[14.5px] my-8 bg-[#9191911f] rounded-md text-white" />
+                    </div>
+                    <div class="step hidden">
+                        <input type="email" placeholder="Email" name="email"
+                            class="block w-full p-[14.5px] my-8 bg-[#9191911f] rounded-md text-white" />
+                    </div>
+                    <div class="step hidden">
+                        <input type="password" placeholder="Password" name="password"
+                            class="block w-full p-[14.5px] my-8 bg-[#9191911f] rounded-md text-white" />
+                    </div>
+                    <div class="step hidden">
+                        <input type="password" placeholder="Confirm Password" name="confirmPassword"
+                            class="block w-full p-[14.5px] my-8 bg-[#9191911f] rounded-md text-white" />
+                        <button type="submit" id="register-btn" class="overflow-hidden w-32 p-2 h-12 bg-black text-white border-none rounded-md text-xl font-bold cursor-pointer relative z-10 group">
+                            Register!
+                            <span class="absolute w-36 h-32 -top-8 -left-2 bg-white rotate-12 transform scale-x-0 group-hover:scale-x-100 transition-transform group-hover:duration-500 duration-1000 origin-left"></span>
+                            <span class="absolute w-36 h-32 -top-8 -left-2 bg-indigo-400 rotate-12 transform scale-x-0 group-hover:scale-x-100 transition-transform group-hover:duration-700 duration-700 origin-left"></span>
+                            <span class="absolute w-36 h-32 -top-8 -left-2 bg-gradient-to-r from-[#6a11cb] to-[#2575fc] rotate-12 transform scale-x-0 group-hover:scale-x-100 transition-transform group-hover:duration-1000 duration-500 origin-left"></span>
+                            <span class="group-hover:opacity-100 group-hover:duration-1000 duration-100 opacity-0 absolute top-2.5 left-4 z-10">Register!</span>
+                        </button>
+                    </div>
+                    <div class="flex justify-between mt-4">
+                        <button type="button" id="next-btn" class="overflow-hidden w-32 p-2 h-12 bg-black text-white border-none rounded-md text-xl font-bold cursor-pointer relative z-10 group">
+                            Next!
+                            <span class="absolute w-36 h-32 -top-8 -left-2 bg-white rotate-12 transform scale-x-0 group-hover:scale-x-100 transition-transform group-hover:duration-500 duration-1000 origin-left"></span>
+                            <span class="absolute w-36 h-32 -top-8 -left-2 bg-indigo-400 rotate-12 transform scale-x-0 group-hover:scale-x-100 transition-transform group-hover:duration-700 duration-700 origin-left"></span>
+                            <span class="absolute w-36 h-32 -top-8 -left-2 bg-gradient-to-r from-[#6a11cb] to-[#2575fc] rotate-12 transform scale-x-0 group-hover:scale-x-100 transition-transform group-hover:duration-1000 duration-500 origin-left"></span>
+                            <span class="group-hover:opacity-100 group-hover:duration-1000 duration-100 opacity-0 absolute top-2.5 left-9 z-10">Next!</span>
+                        </button>
+                        <button type="button" id="prev-btn" class="hidden underline">Previous</button>
+                    </div><br>
+                    <div class="flex justify-between mt-4 opacity-60">
+                        <a href="login.html" class="text-white underline">Back</a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </section>
+    
+    <div id="errorPane" class="hidden fixed top-0 right-0 z-50 flex w-3/4 h-24 overflow-hidden bg-black shadow-lg max-w-96 rounded-xl">
+        <svg xmlns="http://www.w3.org/2000/svg" height="96" width="16">
+            <path stroke-linecap="round" stroke-width="2" stroke="red" fill="red" d="M 8 0 
+               Q 4 4.8, 8 9.6 
+               T 8 19.2 
+               Q 4 24, 8 28.8 
+               T 8 38.4 
+               Q 4 43.2, 8 48 
+               T 8 57.6 
+               Q 4 62.4, 8 67.2 
+               T 8 76.8 
+               Q 4 81.6, 8 86.4 
+               T 8 96 
+               L 0 96 
+               L 0 0 
+               Z"></path>
+        </svg>
+        <div class="mx-2.5 overflow-hidden w-full">
+            <p
+                class="mt-1.5 text-xl font-bold text-[red] leading-8 mr-3 overflow-hidden text-ellipsis whitespace-nowrap">
+                Error !
+            </p>
+            <p class="overflow-hidden leading-5 break-all text-zinc-400 max-h-10">
+                Oh no!<br>
+                <b id="errorMsg">Email already exists.</b>
+            </p>
+        </div>
+        <button class="w-16 cursor-pointer focus:outline-none" id="closeError">
+            <svg class="w-7 h-7 hover:bg-gray-900/10 rounded-full duration-200" fill="none" stroke="red" stroke-width="2" viewBox="0 0 24 24"
+                xmlns="http://www.w3.org/2000/svg">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"></path>
+            </svg>
+        </button>
+    </div>
+
+    <div id="successPane" class="hidden fixed top-0 right-0 z-50 flex w-3/4 h-24 overflow-hidden bg-black shadow-lg max-w-96 rounded-xl">
+        <svg xmlns="http://www.w3.org/2000/svg" height="96" width="16">
+            <path stroke-linecap="round" stroke-width="2" stroke="green" fill="green" d="M 8 0 
+               Q 4 4.8, 8 9.6 
+               T 8 19.2 
+               Q 4 24, 8 28.8 
+               T 8 38.4 
+               Q 4 43.2, 8 48 
+               T 8 57.6 
+               Q 4 62.4, 8 67.2 
+               T 8 76.8 
+               Q 4 81.6, 8 86.4 
+               T 8 96 
+               L 0 96 
+               L 0 0 
+               Z"></path>
+        </svg>
+        <div class="mx-2.5 overflow-hidden w-full">
+            <p
+                class="mt-1.5 text-xl font-bold text-green-500 leading-8 mr-3 overflow-hidden text-ellipsis whitespace-nowrap">
+                Success !
+            </p>
+            <p class="overflow-hidden leading-5 break-all text-zinc-400 max-h-10">
+                Let's Go !<br>
+                <b id="successMsg">Operation successful.</b>
+            </p>
+        </div>
+        <button class="w-16 cursor-pointer focus:outline-none" id="closeSuccess">
+            <svg class="w-7 h-7 hover:bg-gray-900/10 rounded-full duration-200" fill="none" stroke="green" stroke-width="2" viewBox="0 0 24 24"
+                xmlns="http://www.w3.org/2000/svg">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"></path>
+            </svg>
+        </button>
+    </div>
+    
+    <script src="register.js"></script>
+</body>
+
+</html>

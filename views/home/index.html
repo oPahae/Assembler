@@ -1,0 +1,468 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Assembler</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.11.4/gsap.min.js"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.3.0/css/all.min.css">
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&family=Montserrat:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+  <link rel="stylesheet" href="home.css">
+</head>
+<body class="min-h-screen">
+    <div class="flex h-screen overflow-hidden">
+      <!-- Sidebar -->
+      <aside class="glass rounded-none overflow-hidden duration-200 w-full p-4 flex flex-col h-full z-10 border-r border-indigo-500/20 fixed top-0 left-0 sm:relative sm:w-64">
+        <!-- Logo -->
+        <div class="flex items-center mb-6">
+          <div class="w-10 h-10 rounded-full bg-gradient-to-r from-indigo-500 to-purple-500 flex items-center justify-center text-white font-bold text-xl mr-3">AS</div>
+          <h1 class="text-xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-indigo-400 to-pink-400">Assembler</h1>
+        </div>
+        
+        <!-- Projects -->
+        <div class="glass-light p-2 rounded-lg mb-6 flex items-center">
+          <div class="w-3 h-3 rounded-full bg-green-400 mr-2"></div>
+          <select id="projectSelection" class="bg-transparent text-white border-none outline-none w-full cursor-pointer"></select>
+        </div>
+        
+        <!-- Menu -->
+        <nav class="sidebar space-y-1">
+          <div class="sidebar-item glass-light text-indigo-300 p-3 rounded-lg flex items-center cursor-pointer" onclick="window.location.reload()">
+            <i class="fas fa-chart-pie mr-3"></i>
+            <span>Dashboard</span>
+          </div>
+          <div class="sidebar-item text-white/80 p-3 rounded-lg flex items-center cursor-pointer" onclick="switchPage('projects', event)">
+            <i class="fas fa-tasks mr-3"></i>
+            <span>Your Projects</span>
+          </div>
+          <div class="sidebar-item text-white/80 p-3 rounded-lg flex items-center cursor-pointer" onclick="switchPage('create', event)">
+            <i class="fas fa-add mr-3"></i>
+            <span>Create Project</span>
+          </div>
+          <div class="sidebar-item text-white/80 p-3 rounded-lg flex items-center cursor-pointer" onclick="switchPage('join', event)">
+            <i class="fas fa-link mr-3"></i>
+            <span>Join Project</span>
+          </div>
+        </nav>
+
+        <!-- Profile -->
+        <div class="mt-4">
+          <h3 class="text-sm font-medium text-indigo-200 mb-3">Profile</h3>
+          <div id="profile" class="sidebar-item-profile glass-light w-fit rounded-full pl-1 pr-2 py-1 flex items-center cursor-pointer" onclick="switchPage('profile', event)">
+            <div id="profileImg" class="w-8 h-8 overflow-hidden rounded-full bg-gradient-to-r from-indigo-500 to-purple-500 flex items-center justify-center mr-2"></div>
+            <span id="profileName" class="mr-2"></span>
+          </div>
+        </div>
+        
+        <!-- Team -->
+        <div class="mt-8">
+          <h3 class="text-sm font-medium text-indigo-200 mb-3">Team</h3>
+          <div id="team" class="flex flex-wrap gap-2">
+            <div id="invite" class=" w-8 h-8 rounded-full bg-gray-700 flex items-center justify-center cursor-pointer">
+              <i class="fas fa-plus text-xs"></i>
+            </div>
+          </div>
+        </div>
+        
+        <!-- Settings Btn-->
+        <div class="mt-auto" onclick="logout()">
+          <button class="logout w-full">
+            <div>
+              <span>
+                <p class="text-white">Logout</p>
+                <i class="fa-solid fa-right-from-bracket text-[red]"></i>
+              </span>
+            </div>
+            <div>
+              <span>
+                <p>By !</p>
+              </span>
+            </div>
+          </button>
+        </div>
+      </aside>
+      <div id="toggleSidebar" class="w-12 h-12 m-1 z-50 rounded-full glass cursor-pointer fixed top-0 right-0 flex justify-center items-center sm:hidden">
+          <i class="fas fa-bars text-xl"></i>
+      </div>
+
+      <!-- Main -->
+      <main id="container" class="flex-1 flex flex-col overflow-hidden">
+        <!-- Tabs -->
+        <div class="px-6 pt-5 pb-2 overflow-x-scroll md:overflow-x-hidden flex items-center space-x-8 border-b border-white/10">
+          <div class="navbar-item flex items-center pb-2 text-white/70 font-medium cursor-pointer actif" onclick="switchFrame('dashboard')">
+            <i class="fas fa-columns mr-2"></i>
+            Dashboard
+          </div>
+          <div class="navbar-item flex items-center pb-2 text-white/70 font-medium cursor-pointer" onclick="switchFrame('tasks')">
+            <i class="fas fa-list-ul mr-2"></i>
+            Tasks
+          </div>
+          <div class="navbar-item flex items-center pb-2 text-white/70 font-medium cursor-pointer" onclick="switchFrame('chat')">
+            <i class="fas fa-comments mr-2"></i>
+            Chat
+          </div>
+          <div id="supervisor" class="hidden navbar-item flex items-center pb-2 text-white/70 font-medium cursor-pointer" onclick="switchFrame('supervisor')">
+            <i class="fa-solid fa-user-tie mr-2"></i>
+            Supervisor
+          </div>
+          <div class="navbar-item flex items-center pb-2 text-white/70 font-medium cursor-pointer" onclick="switchFrame('team')">
+            <i class="fa-solid fa-users mr-2"></i>
+            Team
+          </div>
+          <div class="navbar-item flex items-center pb-2 text-white/70 font-medium cursor-pointer" onclick="switchFrame('settings')">
+            <i class="fas fa-cog mr-2"></i>
+            Settings
+          </div>
+        </div>
+
+        <!-- Page -->
+        <iframe src="" frameborder="0" class="flex-1 w-full h-full rounded-none"></iframe>
+      </main>
+    </div>
+
+    <!-- Recording -->
+    <div id="recognition" class="hidden fixed top-0 left-0 flex items-end justify-center w-full h-full flex justify-center items-end z-0">
+      <div class="relative z-50">
+          <div class="wave"></div>
+          <div class="wave"></div>
+          <div class="wave"></div>
+      </div>
+    </div>
+
+    <!-- QR code -->
+    <div id="qrContainer" class="z-40 hidden w-full h-full fixed top-0 left-0 flex items-center justify-center bg-black bg-opacity-70" onclick="closeCode(event);">
+      <div class="z-50 glass bg-black rounded-lg p-6 max-w-sm w-full mx-4 qrContainerReal">
+        <div class="flex justify-between items-center mb-4">
+          <h2 class="text-lg font-bold text-white flex items-center">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-2 text-emerald-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+            </svg>
+            Your Code
+          </h2>
+          <button class="text-gray-400 hover:text-white transition duration-300" onclick="document.getElementById('qrContainer').classList.add('hidden');">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
+              <path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd" />
+            </svg>
+          </button>
+        </div>
+        
+        <div class="glass-light p-4 rounded-md mb-5 border border-gray-800 relative group">
+          <p id="codeDisplay" class="text-center text-md font-mono text-emerald-400 select-all"></p>
+          <button id="copyBtn" onclick="copyCode()" class="absolute right-2 top-2 text-gray-400 hover:text-emerald-400 transition duration-300 copy-button opacity-80 group-hover:opacity-100">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
+              <path d="M8 3a1 1 0 011-1h2a1 1 0 110 2H9a1 1 0 01-1-1z" />
+              <path d="M6 3a2 2 0 00-2 2v11a2 2 0 002 2h8a2 2 0 002-2V5a2 2 0 00-2-2 3 3 0 01-3 3H9a3 3 0 01-3-3z" />
+            </svg>
+          </button>
+        </div>
+        
+        <div class="flex flex-col items-center">
+          <p class="text-gray-400 mb-3 text-xs flex items-center">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" />
+            </svg>
+            Scan the QR code
+          </p>
+          <div id="qrcode" class="qr-container bg-white p-2 rounded-md shadow-lg"></div>
+          <p class="text-xs text-gray-500 mt-3">It works too</p>
+          <div class="w-full bg-gray-800 h-1 rounded-full mt-2 overflow-hidden">
+            <div class="bg-emerald-500 h-1 w-full rounded-full"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+     <!-- Error pane -->
+    <div id="errorPane" class="hidden fixed top-0 right-0 z-50 flex w-3/4 h-24 overflow-hidden bg-black shadow-lg max-w-96 rounded-xl">
+        <svg xmlns="http://www.w3.org/2000/svg" height="96" width="16">
+            <path stroke-linecap="round" stroke-width="2" stroke="red" fill="red" d="M 8 0 
+               Q 4 4.8, 8 9.6 
+               T 8 19.2 
+               Q 4 24, 8 28.8 
+               T 8 38.4 
+               Q 4 43.2, 8 48 
+               T 8 57.6 
+               Q 4 62.4, 8 67.2 
+               T 8 76.8 
+               Q 4 81.6, 8 86.4 
+               T 8 96 
+               L 0 96 
+               L 0 0 
+               Z"></path>
+        </svg>
+        <div class="mx-2.5 overflow-hidden w-full">
+            <p
+                class="mt-1.5 text-xl font-bold text-[red] leading-8 mr-3 overflow-hidden text-ellipsis whitespace-nowrap">
+                Error !
+            </p>
+            <p class="overflow-hidden leading-5 break-all text-zinc-400 max-h-10">
+                Oh no!<br>
+                <b id="errorMsg">Email already exists.</b>
+            </p>
+        </div>
+        <button class="w-16 cursor-pointer focus:outline-none" id="closeError">
+            <svg class="w-7 h-7 hover:bg-gray-900/10 rounded-full duration-200" fill="none" stroke="red" stroke-width="2" viewBox="0 0 24 24"
+                xmlns="http://www.w3.org/2000/svg">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"></path>
+            </svg>
+        </button>
+    </div>
+
+    
+     <!-- Success pane -->
+    <div id="successPane" class="hidden fixed top-0 right-0 z-50 flex w-3/4 h-24 overflow-hidden bg-black shadow-lg max-w-96 rounded-xl">
+        <svg xmlns="http://www.w3.org/2000/svg" height="96" width="16">
+            <path stroke-linecap="round" stroke-width="2" stroke="green" fill="green" d="M 8 0 
+               Q 4 4.8, 8 9.6 
+               T 8 19.2 
+               Q 4 24, 8 28.8 
+               T 8 38.4 
+               Q 4 43.2, 8 48 
+               T 8 57.6 
+               Q 4 62.4, 8 67.2 
+               T 8 76.8 
+               Q 4 81.6, 8 86.4 
+               T 8 96 
+               L 0 96 
+               L 0 0 
+               Z"></path>
+        </svg>
+        <div class="mx-2.5 overflow-hidden w-full">
+            <p
+                class="mt-1.5 text-xl font-bold text-green-500 leading-8 mr-3 overflow-hidden text-ellipsis whitespace-nowrap">
+                Success !
+            </p>
+            <p class="overflow-hidden leading-5 break-all text-zinc-400 max-h-10">
+                Let's Go !<br>
+                <b id="successMsg">Operation successful.</b>
+            </p>
+        </div>
+        <button class="w-16 cursor-pointer focus:outline-none" id="closeSuccess">
+            <svg class="w-7 h-7 hover:bg-gray-900/10 rounded-full duration-200" fill="none" stroke="green" stroke-width="2" viewBox="0 0 24 24"
+                xmlns="http://www.w3.org/2000/svg">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"></path>
+            </svg>
+        </button>
+    </div>
+
+    <script>
+        let session = null
+        let userID = null
+        let code = null
+        fetch('../../lib/session.php').then(res => res.json()).then(data => {
+          if(data.status === 'success') {
+            session = data.user
+            if(!session) window.parent.location.href = '../auth/'
+            if(session.role != "prof") document.getElementById("supervisor").classList.remove("hidden");
+            fetchProjects()
+
+            document.getElementById("profileName").textContent = `${session.firstname} ${session.lastname}`
+            document.getElementById("profileImg").innerHTML = session.img ? `<img src="${session.img}" class='w-full h-full shrink-0'>` : generateAvatar(session.firstname)
+            
+            if(session.role == "prof") {
+              document.getElementsByClassName("sidebar-item")[1].style.display = "none"
+              document.getElementsByClassName("sidebar-item")[3].style.display = "none"
+              document.getElementsByClassName("sidebar-item")[4].style.display = "none"
+              document.getElementById("teamText").textContent = "Students"
+            }
+          }
+          else window.parent.location.href = '../auth/'
+        }).catch(err => console.log("Not Connected"))
+
+        let projectSelection = document.getElementById("projectSelection")
+        let team = document.getElementById("team")
+        let opened = true
+
+        document.getElementById("toggleSidebar").onclick = () => {
+          if(opened) document.getElementsByTagName("aside")[0].classList.add('w-0')
+          else       document.getElementsByTagName("aside")[0].classList.remove('w-0')
+          opened = !opened
+        }
+
+        function updateProjectInfos() {
+          fetch(`../../controllers/getProjectInfos.php?projectID=${projectSelection.querySelectorAll("option")[projectSelection.selectedIndex].id}`).then(res => res.json()).then(data => {
+            console.log(data)
+            userID = data.userID
+            code = data.code
+            if(session.role == "prof" || session.id == userID)
+              document.getElementById("invite").classList.remove("hidden")
+          })
+        }
+        
+        function logout() {
+          fetch("../../controllers/logout.php").then(res => res.json()).then(data => window.parent.location.href = "../auth/").catch(err => console.error(err))
+        }
+
+        projectSelection.onchange = () => {
+          document.querySelector("iframe").src = `dashboard.html?projectID=${projectSelection.querySelectorAll("option")[projectSelection.selectedIndex].id}`
+          document.title = `Dashboard - ${projectSelection.querySelectorAll("option")[projectSelection.selectedIndex].value}`
+          updateProjectInfos()
+          fetchUsers()
+        }
+
+        function fetchProjects() {
+          fetch('../../controllers/getProjects.php', {
+              method: 'POST',
+              headers: {
+                  'Content-Type': 'application/json'
+              },
+              body: JSON.stringify({ userID: parseInt(session.id) })
+          })
+          .then(response => response.json())
+          .then(data => {
+              if (data.status == 'success') {
+                if(data.projects.length > 0) {
+                  document.querySelector("iframe").src = `dashboard.html?projectID=${data.projects[0].id}`
+                  document.title = `Dashboard - ${data.projects[0].name}`
+                  data.projects.forEach(proj => {
+                    projectSelection.innerHTML += `
+                      <option name='${proj.code}' id='${proj.id}'>${proj.name} ${proj.userId == session.id ? '⭐' : ''}</option>
+                    `
+                  });
+                  fetchUsers()
+                  updateProjectInfos()
+                }
+                else {
+                  document.getElementById("container").innerHTML = `
+                    <div class='w-full h-full flex flex-col justify-center items-center'>
+                      <h1 class='text-white font-semibold'>You don't have any projects yet</h1>
+                      <p id='noProjects' class='underline text-white cursor-pointer'>Create one now !</p>
+                    </div>
+                  `
+                }
+                document.getElementById("noProjects").onclick = () => {
+                  document.getElementById("container").innerHTML = '<iframe src="" frameborder="0" class="flex-1 w-full h-full rounded-none"></iframe>'
+                  document.querySelector("iframe").src = "create.html?userID=" + session.id
+                  Array.from(document.querySelectorAll(".sidebar > div:not(.sidebar-item-profile)")).forEach((nav) => {
+                    nav.classList.remove("glass-light")
+                    nav.classList.remove("text-indigo-300")
+                    nav.classList.remove("text-white/80")
+                  })
+                  document.getElementsByClassName("sidebar-item")[2].classList.add("glass-light")
+                  document.getElementsByClassName("sidebar-item")[2].classList.add("text-indigo-300")
+                }
+              } else {
+                  console.error("Error message:", data.message);
+              }
+          })
+          .catch(error => {
+              console.error('Catch Error:', error);
+          })
+        }
+        
+        function switchFrame(page) { // tabs
+          document.querySelector('iframe').src = page + "." + document.querySelector('iframe').src.split(".")[1]
+            Array.from(document.getElementsByClassName('navbar-item')).forEach(item => {
+                item.classList.remove('actif')
+                if(item.textContent.toLowerCase().trim() === page)
+                    item.classList.add('actif')
+            });
+        }
+        
+        function switchPage(page, e) { // sidebar
+          document.querySelector("iframe").src = page + ".html?userID=" + session.id
+          Array.from(document.querySelectorAll(".sidebar > div:not(.sidebar-item-profile)")).forEach((nav) => {
+            nav.classList.remove("glass-light")
+            nav.classList.remove("text-indigo-300")
+            nav.classList.remove("text-white/80")
+          })
+          if(!e.currentTarget.classList.contains("sidebar-item-profile")) {
+            e.currentTarget.classList.add("glass-light")
+            e.currentTarget.classList.add("text-indigo-300")
+          }
+        }
+
+        function generateAvatar(firstname) {
+          if (!firstname) return ''
+          let avatar = ''
+          
+          const initials = firstname.substring(0, 2).split("").map(n => n[0]).join('').toUpperCase();
+          avatar += `<div class="w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold" title="${firstname}">${initials}</div>`
+          
+          return avatar;
+        }
+    
+        function fetchUsers() {
+          fetch(`../../controllers/getTeamPahae.php?projectID=${projectSelection.querySelectorAll("option")[projectSelection.selectedIndex].id}`)
+          .then(res => res.json())
+          .then(data => { 
+            if (data.status === "error") {
+              console.log("Else error : " + data)
+            } else {
+              team.innerHTML = '';
+              let colors = ['indigo', 'purple', 'pink', 'blue']
+              data.users.slice(0, 4).forEach((user, index) => {
+                team.innerHTML += `
+                  <div class="w-8 h-8 rounded-full bg-${colors[index]}-500 flex items-center justify-center relative cursor-pointer">
+                    ${
+                      user.img ?
+                      '<div id="profileImg" title="' + user.firstname + '" class="w-7 h-7 overflow-hidden rounded-full bg-gradient-to-r from-indigo-500 to-purple-500 flex items-center justify-center"><img src="' + user.img + '"></div>'
+                      :
+                      generateAvatar(user.firstname)
+                    }
+                    <div class="absolute -bottom-1 -right-1 w-3 h-3 bg-green-400 rounded-full border-2 border-indigo-900"></div>
+                  </div>
+                `
+              });
+              team.innerHTML += `
+                <div id="invite" class=" w-8 h-8 rounded-full bg-gray-700 flex items-center justify-center cursor-pointer">
+                  <i class="fas fa-plus text-xs"></i>
+                </div>
+              `
+              document.getElementById("invite").onclick = () => displayCode(code)
+            }
+          })
+          .catch(err => {
+            console.log("Catch Error:", err);
+          });
+        }
+    
+        function displayCode(code) {
+          const container = document.getElementById('qrContainer');
+          container.classList.remove('hidden');
+          gsap.from('#qrContainer', { width: 0, duration: 0.5, ease: 'power3.out' })
+          document.getElementById('codeDisplay').innerText = code;
+          
+          document.getElementById('qrcode').innerHTML = '';
+          var qrcode = new QRCode(document.getElementById("qrcode"), {
+            text: code,
+            width: 180,
+            height: 180,
+            colorDark: "#000000",
+            colorLight: "#ffffff",
+            correctLevel: QRCode.CorrectLevel.H
+          });
+        }
+
+        function copyCode() {
+          navigator.clipboard.writeText(code)
+            .then(() => {
+              const copyButton = document.getElementById("copyBtn")
+              const originalHTML = document.getElementById("copyBtn").innerHTML
+              
+              copyButton.innerHTML = `
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-green-400" viewBox="0 0 20 20" fill="currentColor">
+                  <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd" />
+                </svg>
+              `;
+              
+              setTimeout(() => {
+                copyButton.innerHTML = originalHTML;
+              }, 2000);
+            })
+            .catch(err => {
+              console.error('Failed to copy: ', err);
+            });
+        }
+
+        function closeCode(event) {
+          if (event.target === document.getElementById('qrContainer')) {
+            document.getElementById('qrContainer').classList.add('hidden');
+          }
+        }
+    </script>
+    <script src="bot.js"></script>
+</body>
+</html>

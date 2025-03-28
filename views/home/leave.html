@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Leave Project</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="home.css">
+</head>
+<body class="min-h-screen bg-black/20">
+    <main class="flex-1 overflow-y-auto p-6">
+      <div class="col-span-2 glass-light p-6">
+    <h1 class="text-2xl font-semibold mb-4"></h1>
+    <p class="mb-6 text-center">Are you sure you want to leave this project?</p>
+    
+    <div id="projectInfo" class="mb-6">
+    </div>
+
+    <div class="flex justify-center space-x-4">
+      <button id="confirmLeaveBtn" class="bg-red-500 hover:bg-red-600 text-white py-2 px-4 rounded">Leave Project</button>
+      <button id="cancelBtn" class="bg-gray-500 hover:bg-gray-600 text-white py-2 px-4 rounded">Cancel</button>
+    </div>
+  </div>
+
+  <script>
+    document.addEventListener('DOMContentLoaded', function() {
+      // Récupérer l'ID du projet depuis l'URL
+      const urlParams = new URLSearchParams(window.location.search);
+      const projectID = urlParams.get('projectID');
+      
+      if (!projectID) {
+        window.parent.location.reload();
+        return;
+      }
+
+      fetch('../../lib/session.php')
+        .then(res => {
+          if (!res.ok) throw new Error('Network response was not ok');
+          return res.json();
+        })
+        .then(data => {
+          if (data.status === 'success') {
+            const userID = data.user.id;
+
+            document.getElementById("confirmLeaveBtn").addEventListener("click", () => {
+              leaveProject(userID, projectID);
+            });
+            
+            document.getElementById("cancelBtn").addEventListener("click", () => {
+              window.location.href = `settings.html?projectID=${projectID}`;
+            });
+            
+          } else {
+            window.location.href = '../auth/';
+          }
+        })
+        .catch(err => {
+          console.error("Error:", err);
+          window.location.href = '../auth/';
+        });
+    });
+
+    async function leaveProject(userID, projectID) {
+      try {
+        const response = await fetch("../../controllers/leaveProject.php", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json"
+          },
+          body: JSON.stringify({ userID, projectID })
+        });
+
+        const contentType = response.headers.get('content-type');
+        if (!contentType || !contentType.includes('application/json')) {
+          const text = await response.text();
+          throw new Error(`Invalid response: ${text}`);
+        }
+
+        const data = await response.json();
+
+        if (data.status === "success") {
+          window.parent.showSuccessPane('You have successfully left the project');
+          window.parent.location.reload();
+        } else {
+          throw new Error(data.message || 'Failed to leave project');
+        }
+      } catch (error) {
+        console.error("Error:", error);
+        window.parent.showErrorPane(`Error: ${error.message}`);
+      }
+    }
+
+    async function fetchProjectDetails(projectID) {
+      try {
+        const response = await fetch("../../controllers/getProjectDetails.php", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json"
+          },
+          body: JSON.stringify({ projectID })
+        });
+
+        const data = await response.json();
+        
+        if (data.status === "success") {
+          document.getElementById("projectInfo").innerHTML = `
+            <p class="text-lg">Project: <strong>${data.project.name}</strong></p>
+            <p class="text-gray-400">${data.project.slogan || ''}</p>
+          `;
+        }
+      } catch (error) {
+        console.error("Could not load project details:", error);
+      }
+    }
+  </script>
+</body>
+</html>

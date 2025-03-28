@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Assember - Chat</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.11.4/gsap.min.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.3.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&family=Montserrat:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="home.css">
+    <style>
+      body {
+        background-image: none !important;
+      }
+    </style>
+</head>
+<body>
+    <div class="w-full h-screen flex flex-col overflow-hidden shadow-xl backdrop-blur-md">
+        <!-- Header -->
+        <div class="p-5 rounded-none flex justify-between items-center glass">
+          <div class="flex items-center">
+            <div class="w-8 h-8 rounded-full bg-gradient-to-r from-indigo-500 to-purple-500 flex items-center justify-center mr-2">
+              <span class="text-xs font-bold">AS</span>
+            </div>
+            <span class="font-medium">Chat</span>
+          </div>
+          <div class="flex space-x-2">
+            <button class="w-10 h-10 rounded-full shadow-xl glass-light bg-green-400/50 hover:bg-green-600/50 flex items-center justify-center cursor-pointer" onclick="voiceCall()">
+              <i class="fas fa-phone-alt text-xl"></i>
+            </button>
+          </div>
+        </div>
+        
+        <!-- Messages -->
+        <div id="msgsContainer" class="flex grow flex-col overflow-y-auto p-3 space-y-3">
+          <div class="banter-loader">
+            <div class="banter-loader__box"></div>
+            <div class="banter-loader__box"></div>
+            <div class="banter-loader__box"></div>
+            <div class="banter-loader__box"></div>
+            <div class="banter-loader__box"></div>
+            <div class="banter-loader__box"></div>
+            <div class="banter-loader__box"></div>
+            <div class="banter-loader__box"></div>
+            <div class="banter-loader__box"></div>
+          </div>
+        </div>
+        
+        <!-- Input -->
+        <div id="emojis" class="hidden fixed bottom-14 right-0 w-[50%] py-3 h-fit glass-light bg-black text-3xl text-white overflow-x-auto whitespace-nowrap flex flex-nowrap flex-row items-center gap-2 p-2 cursor-pointer">
+          <p>❤</p><p>😊</p><p>😂</p><p>😍</p><p>😎</p><p>🤮</p><p>🥵</p><p>😱</p><p>😡</p><p>🤬</p><p>🤡</p><p>😒</p><p>😘</p><p>😁</p><p>😉</p><p>😢</p><p>👏</p><p>✔</p><p>⏲</p>
+        </div>               
+        <div class="p-3 border-t border-white/10">
+          <div class="flex items-center">
+            <div class="glass-light rounded-full flex items-center flex-1 px-3 py-2">
+              <input autocomplete="off" id="msgInp" type="text" placeholder="Votre message..." class="bg-transparent border-none outline-none text-sm w-full">
+              <div class="flex space-x-2 ml-2">
+                <i class="fas fa-smile text-white/50 cursor-pointer" onclick="toggleEmojis()"></i>
+              </div>
+            </div>
+            <button onclick="handleSendMsg()" class="w-8 h-8 rounded-full bg-indigo-500 flex items-center justify-center ml-2">
+              <i class="fas fa-paper-plane text-xs"></i>
+            </button>
+          </div>
+        </div>
+    </div>
+
+    <script>
+      let session = null
+      let emojisOpened = false
+      let emojis = document.getElementById("emojis")
+      fetch('../../lib/session.php').then(res => res.json()).then(data => {
+        if(data.status === 'success') session = data.user
+        else window.parent.location.href = '../auth/'
+      }).catch(err => console("Not Connected"))
+
+      const projectID = new URLSearchParams(window.location.search).get('projectID');
+      let container = document.getElementById("msgsContainer")
+      
+      document.addEventListener("keydown", (e) => { if(e.key == 'Enter') handleSendMsg() })
+      window.onload = () => fetchMsgs();
+
+      function fetchMsgs() {
+        fetch('../../controllers/getMsgs.php', {
+            method: 'POST',
+            body: JSON.stringify({ projectID })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.status == 'error') {
+                console.error('Else Error: ' + data.message);
+                window.parent.showErrorPane("Error: " + data.message)
+            } else {
+              container.innerHTML = ""
+              data.msgs.forEach(msg => {
+                container.innerHTML += `
+                  <section class="flex items-start mb-3 self-${msg.userID == session.id ? 'end' : 'start'}">
+                    <div class="w-7 h-7 overflow-hidden rounded-full bg-purple-500 flex items-center justify-center text-xs font-bold mr-2">
+                      ${msg.img ? '<img src="' + msg.img + '">' : generateAvatar(msg.firstname)}  
+                    </div>
+                    <div class="glass rounded-tr-lg rounded-bl-lg ${msg.userID == session.id && 'bg-blue-500/20'} p-2 rounded-lg max-w-[80%] break-words">
+                       <p class="text-xs font-medium mb-1">${msg.firstname} ${msg.lastname}</p>
+                       <p class="text-md">${msg.content}</p>
+                       <sub class="text-right text-xs text-white/50 mt-1">${msg.createdAt.split(' ')[0]} • ${msg.createdAt.split(' ')[1].substring(1, 5)}</sub>
+                    </div>
+                  </section>
+                `
+              });
+              window.scrollTo({ top: document.body.scrollHeight, behavior: "smooth" });
+            }
+        })
+        .catch(error => {
+            console.log('Catch Error: ' + error);
+            window.parent.showErrorPane("Error: " + error)
+        })
+      }
+
+      function handleSendMsg() {
+        let content = document.getElementById("msgInp").value
+        if(!content.trim()) return
+
+        fetch('../../controllers/addMsg.php', {
+          method: 'POST',
+          body: JSON.stringify({ projectID, userID: session.id, content })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.status == 'error') {
+              console.log('Else Error: ' + data.message);
+              window.parent.showErrorPane("Error: " + data.message)
+            } else {
+              fetchMsgs()
+              document.getElementById("msgInp").value = ""
+              window.scrollBy({ top: 100, behavior: "smooth" });
+            }
+        })
+        .catch(error => {
+          console.log('Catch Error: ' + error);
+          window.parent.showErrorPane("Error: " + error)
+        })
+      }
+
+      function generateAvatar(firstname) {
+          if (!firstname) return ''
+          let avatar = ''
+          const colors = ['bg-indigo-500', 'bg-purple-500', 'bg-pink-500', 'bg-blue-500', 'bg-green-500'];
+          
+          const initials = firstname.substring(0, 2).split("").map(n => n[0]).join('').toUpperCase();
+          const colorClass = colors[Math.floor(Math.random() * (5 - 0) + 0)];
+          avatar += `<div class="w-7 h-7 rounded-full ${colorClass} flex items-center justify-center text-xs font-bold " title="${firstname}">${initials}</div>`
+          
+          return avatar;
+        }
+    
+      function toggleEmojis() {
+        if(emojis.classList.contains("hidden")) openEmojis()
+        else closeEmojis()
+      }
+
+      function closeEmojis() {
+        gsap.killTweensOf("#emojis")
+        gsap.set("#emojis", { clearProps: "all" })
+        gsap.to("#emojis", { y: '100%', opacity: 0, duration: 0.2, ease: 'power3.in', onComplete: () => emojis.classList.add("hidden") })
+      }
+
+      function openEmojis() {
+        gsap.killTweensOf("#emojis")
+        gsap.set("#emojis", { clearProps: "all" })
+        emojis.classList.remove("hidden")
+        gsap.from("#emojis", { y: '100%', opacity: 0, duration: 0.75, ease: 'elastic.out' })
+      }
+
+      Array.from(emojis.querySelectorAll("p")).forEach((emoji) => {
+        emoji.onclick = () => {
+          document.getElementById("msgInp").value = emoji.textContent
+          closeEmojis()
+        }
+      })
+
+      msgsContainer.onclick = () => closeEmojis()
+      
+      function voiceCall() {
+        window.parent.location.href=`http://localhost:3000/index.html?projectID=${new URLSearchParams(window.location.search).get('projectID')}&userID=${session.id}&firstname=${session.firstname}`
+      }
+    </script>
+</body>
+</html>

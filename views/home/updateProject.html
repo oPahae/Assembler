@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Modifier Projet</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="home.css">
+    <style>
+        body {
+            background-image: none !important;
+        }
+    </style>
+</head>
+<body class=" flex items-center justify-center min-h-screen font-sans">
+    <div class=" glass p-6 shadow-lg w-full max-w-lg ">
+        <h2 class="text-2xl text-center font-semibold mb-4">Update Project</h2>
+        <form id="updateProjectForm">
+            <div class="  mb-4">
+                <label class="block text-xl font-medium ">Project name </label>
+                <input type="text" id="projectName" name="name" class="mt-1 block w-full p-2 border border-gray-300 rounded-md" required>
+            </div>
+            <div class="mb-4">
+                <label class="block text-xl font-medium ">Max Members</label>
+                <input type="text" id="maxMembers" name="maxMembers" class="mt-1 block w-full p-2 border border-gray-300 rounded-md" required>
+            </div>
+            <div class="mb-4">
+                <label class="block text-xl font-medium ">Slogan</label>
+                <input type="text" id="slogan" name="slogan" class="mt-1 block w-full p-2 border border-gray-300 rounded-md" required>
+            </div>
+            <div class="flex  justify-end space-x-3">
+              <button type="button" onclick="history.back()" class="px-5 py-2 glass-light rounded-lg hover:bg-white/10 transition-all">
+                Cancel
+              </button>
+              <button type="submit" class="px-5 py-2 primary rounded-lg bg-indigo-500 hover:bg-indigo-600 transition-all">
+                Update
+              </button>
+            </div>
+</div>
+        </form>
+    </div>
+    <script>
+        const urlParams = new URLSearchParams(window.location.search);
+        const projectID = urlParams.get('projectID');
+
+        fetch('../../controllers/getProjectDetails.php', {
+            method: 'POST',
+            body: JSON.stringify({ projectID }),
+            headers: {
+                'Content-Type': 'application/json'
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.status === 'success') {
+                document.getElementById('projectName').value = data.project.name;
+                document.getElementById('maxMembers').value = data.project.maxMembers;
+                document.getElementById('slogan').value = data.project.slogan;
+            } else {
+                console.error('Erreur : ' + data.message);
+            }
+        });
+
+        document.getElementById('updateProjectForm').addEventListener('submit', function(event) {
+            event.preventDefault();
+            const formData = {
+                projectID: projectID,
+                name: document.getElementById('projectName').value,
+                maxMembers: document.getElementById('maxMembers').value,
+                slogan: document.getElementById('slogan').value
+            };
+            fetch('../../controllers/updateProject.php', {
+                method: 'POST',
+                body: JSON.stringify(formData),
+                headers: {
+                    'Content-Type': 'application/json'
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.status === 'success') {
+                    window.parent.showSuccessPane('Project Updated Successfuly !');
+                    window.parent.location.reload();
+                } else {
+                    window.parent.showErrorPane('Error : ' + data.message);
+                }
+            })
+            .catch(error => {
+                window.parent.showErrorPane('Error : ' + error);
+                console.error('Error:', error);
+            });
+        });
+    </script>
+</body>
+</html>

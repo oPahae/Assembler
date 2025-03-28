@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Assember - Voice Chat</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.11.4/gsap.min.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.3.0/css/all.min.css">
+    <link
+        href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&family=Montserrat:wght@400;500;600;700&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="home.css">
+</head>
+
+<body class="h-screen flex flex-col justify-between items-center">
+    <div>
+        <button id="joinRoom" class="glass-light py-2 px-3">Join</button>
+        <button id="testAudio" class="glass-light py-2 px-3">Test Audio Local</button>
+    </div>
+    <div id="status">Waiting for connection...</div>
+    <div id="audios" class="glass"></div>
+    <div id="connectionLogs" class="glass w-[100px] h-screen fixed top-0 right-0 rounded-none"></div>
+
+    <script src="/socket.io/socket.io.js"></script>
+    <script>
+        const socket = io();
+        let myId = null;
+        let peerConnections = {};
+        let localStream = null;
+        let currentRoom = null;
+
+        const config = {
+            iceServers: [
+                { urls: "stun:stun.l.google.com:19302" },
+                { urls: "stun:stun1.l.google.com:19302" },
+                { urls: "stun:stun2.l.google.com:19302" },
+                { urls: "stun:stun3.l.google.com:19302" },
+                { urls: "stun:stun4.l.google.com:19302" }
+            ],
+            iceCandidatePoolSize: 10
+        };
+
+        document.getElementById("joinRoom").addEventListener("click", async () => {
+            const roomId = new URLSearchParams(window.location.search).get('projectID');
+            if (!roomId) { window.parent.showErrorPane("Room not found: "); return}
+
+            if (currentRoom === roomId && localStream) return;
+
+            if (currentRoom && currentRoom !== roomId) {
+                cleanupConnections();
+            }
+
+            try {
+                if (!localStream) {
+                    localStream = await navigator.mediaDevices.getUserMedia({
+                        audio: { echoCancellation: true, noiseSuppression: true, autoGainControl: true }
+                    });
+                    displayAudioElement("local", localStream, true);
+                }
+
+                currentRoom = roomId;
+                socket.emit("join-room", roomId);
+
+                if (!myId) {
+                    myId = socket.id;
+                }
+            } catch (error) {
+                window.parent.showErrorPane("Error Accessing Micro : " + error);
+            }
+        });
+
+        socket.on("room-users", (users) => {
+            users.forEach(userId => {
+                if (userId !== socket.id) {
+                    initiateCall(userId);
+                }
+            });
+        });
+
+        socket.on("user-joined", (userId) => {
+            console.log(`Utilisateur ${userId} a rejoint la salle`);
+        });
+
+        socket.on("offer", async ({ offer, from }) => {
+            const peerConnection = createPeerConnection(from);
+            await peerConnection.setRemoteDescription(new RTCSessionDescription(offer));
+
+            localStream.getTracks().forEach(track => {
+                peerConnection.addTrack(track, localStream);
+            });
+
+            const answer = await peerConnection.createAnswer();
+            await peerConnection.setLocalDescription(answer);
+
+            socket.emit("answer", { answer: peerConnection.localDescription, to: from });
+        });
+
+        socket.on("answer", ({ answer, from }) => {
+            peerConnections[from]?.setRemoteDescription(new RTCSessionDescription(answer));
+        });
+
+        socket.on("ice-candidate", ({ candidate, from }) => {
+            peerConnections[from]?.addIceCandidate(new RTCIceCandidate(candidate));
+        });
+
+        socket.on("user-left", (userId) => {
+            peerConnections[userId]?.close();
+            delete peerConnections[userId];
+        });
+
+        function initiateCall(userId) {
+            const peerConnection = createPeerConnection(userId);
+            localStream.getTracks().forEach(track => {
+                peerConnection.addTrack(track, localStream);
+            });
+
+            peerConnection.createOffer()
+                .then(offer => peerConnection.setLocalDescription(offer))
+                .then(() => {
+                    socket.emit("offer", { offer: peerConnection.localDescription, to: userId });
+                });
+        }
+
+        function createPeerConnection(userId) {
+            if (peerConnections[userId]) {
+                peerConnections[userId].close();
+            }
+
+            const peerConnection = new RTCPeerConnection(config);
+            peerConnections[userId] = peerConnection;
+
+            peerConnection.onicecandidate = (event) => {
+                if (event.candidate) {
+                    socket.emit("ice-candidate", { candidate: event.candidate, to: userId });
+                }
+            };
+
+            peerConnection.ontrack = (event) => {
+                displayAudioElement(userId, event.streams[0], false);
+            };
+
+            return peerConnection;
+        }
+
+        function displayAudioElement(id, stream, isLocal) {
+            let container = document.getElementById(`container-${id}`);
+            if (!container) {
+                container = document.createElement("div");
+                container.id = `container-${id}`;
+                const label = document.createElement("div");
+                label.textContent = isLocal ? "Vous" : `Utilisateur ${id}`;
+                container.appendChild(label);
+
+                const audio = document.createElement("audio");
+                audio.controls = true;
+                audio.autoplay = true;
+                if (isLocal) audio.muted = true;
+                audio.srcObject = stream;
+                container.appendChild(audio);
+
+                document.getElementById("audios").appendChild(container);
+            }
+        }
+    </script>
+</body>
+
+</html>

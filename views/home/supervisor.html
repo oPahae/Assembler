@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Assembler - Plateforme Marketing</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.11.4/gsap.min.js"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.3.0/css/all.min.css">
+  <link rel="stylesheet" href="home.css">
+  <style>
+    body {
+      background-image: none !important;
+    }
+    #userDetails {
+      display: none;
+      background-color: rgba(255, 255, 255, 0.9);
+      padding: 1rem;
+      border-radius: 8px;
+      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+    }
+  </style>
+</head>
+
+<body class="min-h-screen">
+  <main class="flex-1 overflow-y-auto p-6 justify-center">
+    <div class="glass col-span-2 rounded-xl p-5">
+  <div class="">
+    <div id="Prof" class="text-center"></div>
+  </div>
+    </div>
+  </main>
+  <script>
+    let session = null;
+    // session
+    fetch('../../lib/session.php')
+      .then(res => res.json())
+      .then(data => {
+        if (data.status === 'success') {
+          session = data.user;
+        } else {
+          window.parent.location.href = '../auth/';
+        }
+      })
+      .catch(err => console.log("Not Connected"));
+
+    const usersContainer = document.getElementById('Prof');
+    const urlParams = new URLSearchParams(window.location.search);
+    const projectID = urlParams.get('projectID');
+
+    if (!projectID) {
+      console.log('Project ID is missing!');
+    }
+    //njibo gae les membres de projet
+    fetch("../../controllers/getTeam.php", {
+      method: 'POST',
+      body: JSON.stringify({ projectID }),
+      headers: {
+        'Content-Type': 'application/json'
+      }
+    })
+    .then(res => {
+      if (!res.ok) {
+        throw new Error("Network response was not ok");
+      }
+      return res.json();
+    })
+    .then(data => {
+      console.log("Response Data:", data); 
+      if (data.status === "error") {
+        usersContainer.innerHTML = `<p class="text-red-500">${data.message}</p>`;
+      } else if (data.status === "success") {
+        usersContainer.innerHTML = ''; 
+        const profs = data.users.filter(user => user.role === 'prof');
+        profs.forEach(user => {
+          const userDiv = document.createElement('div');
+          let userImage = user.img 
+            ? `<img src="${user.img}" alt="User Image" class="w-20 h-20 rounded-full mx-auto mb-4" />` 
+            : generateAvatar(user.firstname);
+
+          userDiv.innerHTML = `
+            <div class="">
+             <div class=""> ${userImage}</div>
+              <h4 class="text-sm font-semibold text-gray-300 text-xl">Pr .  ${user.lastname.toUpperCase()} ${user.firstname.toUpperCase()}</h4>
+              <h4 class="text-sm font-bold text-gray-300 text-2xl"> Speciality : ${user.speciality.toUpperCase()}</h4>
+              <div>
+                  <i class="fa-solid fa-envelope"></i>
+                  <a href="mailto:${user.email}?subject=Contact%20encadrant" class="underline font-bold text-gray-300 text-base"> Contact  </a>
+              </div>
+            </div>
+          `;
+
+          usersContainer.appendChild(userDiv);  
+        });
+      }
+    })
+    .catch(err => {
+      usersContainer.innerHTML = `<p class="text-red-500">Erreur lors du chargement des utilisateurs</p>`;
+      console.log("Fetch Error:", err);
+    });
+
+    function generateAvatar(firstname) {
+      if (!firstname) return '';
+      const colors = ['bg-indigo-500', 'bg-purple-500', 'bg-pink-500', 'bg-blue-500', 'bg-green-500'];
+      const initials = firstname.substring(0, 2).toUpperCase();
+      const colorClass = colors[Math.floor(Math.random() * colors.length)];
+      return `<div class="w-24 h-24 rounded-full ${colorClass} flex items-center justify-center mx-auto mb-4 text-xl font-bold" title="${firstname}">${initials}</div>`;
+    }
+  </script>
+</body>
+</html>

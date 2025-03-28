@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Assembler - Plateforme Marketing</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.11.4/gsap.min.js"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.3.0/css/all.min.css">
+  <link rel="stylesheet" href="home.css">
+  <style>
+    body {
+      background-image: none !important;
+    }
+  </style>
+</head>
+<body class="min-h-screen">
+  <div class="flex h-screen overflow-hidden">
+    <main class="flex-1 overflow-y-auto p-6">
+      <div class="glass col-span-2 rounded-xl p-5">
+        <!-- Header -->
+        <header class="flex justify-between items-center mb-4">
+          <h3 class="font-semibold text-lg">Recent Tasks</h3>
+          <div class="flex space-x-3">
+            <div id="addTask" class="hidden glass-light px-3 py-1 rounded-full text-sm cursor-pointer" onclick="document.location.href = `addTask.html?projectID=${new URLSearchParams(window.location.search).get('projectID')}`">
+              <i class="fas fa-plus mr-1"></i>
+              <span>Add</span>
+            </div>
+            <div class="glass-light px-3 py-1 rounded-full text-sm cursor-pointer">
+              <i class="fas fa-filter mr-1"></i>
+              <span>Filtred by date</span>
+            </div>
+          </div>
+        </header>
+        
+        <!-- Tasks List -->
+        <div id="tasks" class="space-y-3"></div>
+      </div>
+      
+      <!-- loader -->
+      <div id="loader" class="banter-loader">
+        <div class="banter-loader__box"></div>
+        <div class="banter-loader__box"></div>
+        <div class="banter-loader__box"></div>
+        <div class="banter-loader__box"></div>
+        <div class="banter-loader__box"></div>
+        <div class="banter-loader__box"></div>
+        <div class="banter-loader__box"></div>
+        <div class="banter-loader__box"></div>
+        <div class="banter-loader__box"></div>
+      </div>
+    </main>
+  </div>
+
+  <div id="popup" class="hidden fixed top-0 left-0 w-full h-screen bg-gray-900/50 backdrop-blur-sm z-50 flex justify-center items-center" onclick="closePopup()">
+      <iframe src="" frameborder="0" class="w-[80%] h-[90%] border-white/10 rounded-3xl"></iframe>
+  </div>
+
+  <script>
+    let session = null
+    let userID = null
+    fetch('../../lib/session.php').then(res => res.json()).then(data => {
+      if(data.status === 'success') {
+        session = data.user
+        fetch(`../../controllers/getProjectInfos.php?projectID=${projectID}`).then(res => res.json()).then(data => {
+          userID = data.userID
+          if(session.role == "prof" || session.id == userID)
+            document.getElementById("addTask").classList.remove("hidden")
+        }).catch(err => window.parent.showErrorPane(err))
+      }
+      else window.parent.location.href = '../auth/'
+    }).catch(err => console("Not Connected"))
+    
+    let projectID = new URLSearchParams(window.location.search).get('projectID')
+    const tasksContainer = document.querySelector('#tasks');
+
+    async function fetchTasks() {
+      if (!projectID) { console.error("No projectID found in URL"); return }
+      
+      try {
+        const response = await fetch(`../../controllers/getTasks.php?projectID=${projectID}`);
+        const data = await response.json();
+        
+        if (data.status === "success") {
+          console.log(data)
+          displayTasks(data.tasks);
+        } else {
+          console.error("Else Error:", data.message);
+        }
+      } catch (error) {
+        console.error("Catch Error:", error);
+      }
+    }
+
+    function displayTasks(tasks) {
+      tasksContainer.innerHTML = '';
+      
+      if (!tasks || tasks.length === 0) {
+        tasksContainer.innerHTML = '<p class="text-center py-4">No tasks yet in this project</p>';
+        return;
+      }
+      tasksContainer.innerHTML = "";
+      document.getElementById("loader").style.display = "none"
+
+      tasks.reverse().forEach(task => {
+        let statusDot = "todo";
+        let statusText = "Pending";
+        let progressColor = "text-gray-300";
+        let progressText = "0%";
+        let isCompleted = false;
+        
+        let progress = task.completed_subtasks / task.total_subtasks
+        
+        if(progress == 1) {
+          statusDot = "done";
+          statusText = "Completed";
+          progressColor = "text-green-500";
+          progressText = `Completed`;
+          isCompleted = true;
+        }
+
+        else if(progress > 0) {
+          statusDot = "progress";
+          statusText = "Ongoing";
+          progressColor = "text-indigo-300";
+          progressText = `${parseInt(task.progress)}%`;
+        }
+        
+        const deadline = new Date(task.deadline);
+        const formattedDeadline = `${deadline.getDate()} ${['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'][deadline.getMonth()]}`;
+
+        const taskHTML = `
+          <section class="glass-light p-4 rounded-lg cursor-pointer" onclick="location.href = 'subtasks.html?taskID=${task.id}'">
+            <div class="flex justify-between mb-2">
+              <div class="flex items-center">
+                <input type="checkbox" class="custom-checkbox mr-3" ${isCompleted ? 'checked' : ''} disabled>
+                <h4 class="font-semibold hover:underline ${isCompleted ? 'line-through text-gray-400 italic' : ''}" onclick="location.href = 'subtasks.html?taskID=${task.id}'">${task.name}</h4>
+              </div>
+              <div class="${progressColor} text-sm font-medium">
+                <i class="${progressColor} fas fa-flag mr-1"></i>${progressText}
+              </div>
+            </div>
+            
+            <div class="flex justify-between items-center">
+              <div class="flex flex-wrap items-center text-sm text-white/70">
+                <span class="status-dot ${statusDot}"></span>
+                <span>${statusText}</span>
+                <span class="mx-2">•</span>
+                <span>Deadline: ${formattedDeadline}</span>
+                <span class="mx-2">•</span>
+                ${(session.role == 'prof' || session.id == userID) ?
+                  `<div class="text-green-500 font-semibold" onclick="event.stopPropagation(); document.location.href = 'updateTask.html?taskID=${task.id}'">
+                    <i class="fa-solid fa-pen p-1 rounded-full"></i>
+                    <span class="mx-2 underline">Edit</span>
+                  </div>
+                    <span class="mx-2">•</span>
+                  <div class="text-red-500 font-semibold" onclick="event.stopPropagation(); handleDelete(${task.id})">
+                    <i class="fa-solid fa-trash p-1 rounded-full"></i>
+                    <span class="mx-2 underline">Delete</span>
+                  </div>` : ''
+                }
+              </div>
+              
+              <div class="flex items-center">
+                <div class="avatar-group flex -space-x-2 mr-4">
+                  ${
+                    task.img ?
+                    '<div id="profileImg" title="' + task.firstname + '" class="w-7 h-7 overflow-hidden rounded-full bg-gradient-to-r from-indigo-500 to-purple-500 flex items-center justify-center"><img src="' + task.img + '"></div>'
+                    :
+                    generateAvatar(task.firstname)
+                  }
+                </div>
+              </div>
+            </div>
+          </section>
+        `;
+        tasksContainer.innerHTML += taskHTML;
+      });
+    }
+
+    function generateAvatar(firstname) {
+      if (!firstname) return ''
+      let avatar = ''
+      const colors = ['bg-indigo-500', 'bg-purple-500', 'bg-pink-500', 'bg-blue-500', 'bg-green-500'];
+      
+      const initials = firstname.substring(0, 2).split("").map(n => n[0]).join('').toUpperCase();
+      const colorClass = colors[Math.floor(Math.random() * (5 - 0) + 0)];
+      avatar += `<div class="w-7 h-7 rounded-full ${colorClass} flex items-center justify-center text-xs font-bold " title="${firstname}">${initials}</div>`
+      
+      return avatar;
+    }
+
+    document.addEventListener('DOMContentLoaded', setTimeout(() => {
+      fetchTasks()
+    }, 1000));
+
+    async function handleDelete(taskID) {
+      if(!confirm("Are you sure ?")) return
+    
+      try {
+        const response = await fetch("../../controllers/deleteTask.php", {
+          method: "DELETE",
+          headers: {
+            "Content-Type": "application/json"
+          },
+          body: JSON.stringify({ taskID })
+        })
+        const data = await response.json()
+        if(data.status == "success") {
+          window.parent.showSuccessPane("Task has been deleted !")
+          tasksContainer.innerHTML = ""
+          fetchTasks()
+        }
+        else
+          console.log("Else Error: " + data)
+      } catch (error) {
+        console.log("Catch Error: " + error.message)
+      }
+    }
+  
+  </script>
+</body>
+</html>

@@ -1,0 +1,370 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Assembler - Plateforme Marketing</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.11.4/gsap.min.js"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.3.0/css/all.min.css">
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&family=Montserrat:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="home.css">
+  <style>
+    body {
+      background-image: none !important;
+    }
+  </style>
+</head>
+<body class="w-full h-screen bg-black/20">
+    <!-- SubTask -->
+    <div class=" w-full h-full overflow-hidden overflow-y-scroll">
+        <!-- Header -->
+        <div class="p-5 border-b flex justify-between items-center">
+          <div class="flex items-center">
+            <div class="w-3 h-8 bg-indigo-500 rounded-full mr-4"></div>
+            <h2 id="taskName" class="text-xl font-semibold"></h2>
+          </div>
+        </div>
+        
+        <!-- Content -->
+        <div class="p-5 overflow-y-auto">
+          <div class="flex flex-col gap-6">
+            <div class="space-y-6 w-full">
+              <!-- Description -->
+              <div class="w-full">
+                <h3 class="text-indigo-300 font-medium mb-3">Description</h3>
+                <div class="glass-light p-4 rounded-lg text-sm">
+                  <p id="taskDescr"></p>
+                </div>
+              </div>
+              
+              <!-- Subtasks -->
+              <div>
+                <h3 class="text-indigo-300 font-medium mb-3">Subtasks</h3>
+                <div class="glass-light p-4 rounded-lg">
+                  <div id="subtasksContainer" class="space-y-2">
+                  </div>
+                  <button onclick="addSubtask()" id="addSubtask" class="mt-3 flex items-center text-indigo-300 cursor-pointer">
+                    <i class="fas fa-plus text-xs mr-2"></i>
+                    <span class="text-sm">Add Subtask</span>
+                  </button>
+                </div>
+              </div>
+              
+              <!-- Docs -->
+              <div>
+                <h3 class="text-indigo-300 font-medium mb-3">Attachments</h3>
+                <div class="glass-light p-4 rounded-lg">
+                  <div id="docsContainer" class="flex flex-row gap-3 flex-wrap justify-between"></div>
+                  <button id="addDoc" class="mt-3 flex items-center text-indigo-300 cursor-pointer">
+                    <i class="fas fa-plus text-xs mr-2"></i>
+                    <span class="text-sm">Add docs</span>
+                  </button>
+                </div>
+              </div>
+              
+              <!-- Comments -->
+              <div>
+                <h3 class="text-indigo-300 font-medium mb-3">Comments</h3>
+                <div id="cmntsContainer" class="glass-light p-4 rounded-lg space-y-4">
+                  <button onclick="addCmnt()" id="addCmnt" class="mt-3 flex items-center text-indigo-300 cursor-pointer">
+                    <i class="fas fa-plus text-xs mr-2"></i>
+                    <span class="text-sm">Add Comment</span>
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    <div id="popup" class="popup hidden fixed top-0 left-0 w-full h-screen bg-gray-900/20 backdrop-blur-sm z-50 flex justify-center items-center">
+        <iframe src="" frameborder="0" class="w-[40%] h-[60%] rounded-3xl"></iframe>
+    </div>
+
+    <script>
+        let session = null
+        fetch('../../lib/session.php').then(res => res.json()).then(data => {
+          if(data.status === 'success') session = data.user
+          else window.parent.location.href = '../auth/'
+        }).catch(err => console.log("Not Connected"))
+        
+        const taskID = new URLSearchParams(window.location.search).get('taskID');
+        window.onload= () => loadTaskData()
+
+        async function loadTaskData() {
+            if (!taskID) {
+              window.parent.showErrorPane("Task ID not found");
+                return;
+            }
+
+            try {
+                const response = await fetch(`../../controllers/getTaskInfos.php?taskID=${taskID}`);
+                
+                if (!response.ok) {
+                    const errorText = await response.text();
+                    throw new Error(`HTTP error! status: ${response.status}, message: ${errorText}`);
+                }
+                
+                const text = await response.text();
+                console.log(text);
+                
+                var data;
+                try {
+                    data = JSON.parse(text.trim());
+                } catch (parseError) {
+                    console.error('JSON Parse Error:', parseError);
+                    console.error('Problematic response:', text);
+                    window.parent.showErrorPane('Failed to parse server response. Check console for details.');
+                    return;
+                }
+                
+                if (!data || data.status !== "success") {
+                  window.parent.showErrorPane(`Error: ${data.message || 'Unknown error occurred'}`);
+                  return;
+                }
+
+                document.getElementById('taskName').textContent = data.task.name;
+                document.getElementById('taskDescr').textContent = data.task.descr || '';
+
+                (data.subtasks || []).forEach(subtask => {
+                  document.getElementById("subtasksContainer").innerHTML += `
+                    <div id="${subtask.id}" class="flex items-center subtask">
+                      <input type="checkbox" class="custom-checkbox mr-3" ${subtask.status == 'done' && 'checked'}>
+                      <span class="text-sm ${subtask.status == 'done' && 'line-through'} text-white${subtask.status == 'done' && '/50'}">${subtask.name}</span>
+                    </div>
+                  `
+                });
+
+                (data.docs || []).forEach(doc => {
+                  let colors = ['pink', 'blue', 'orange']
+                  let type
+                  switch(doc.name.split(".")[1]) {
+                    // img
+                    case 'png': type = "image/png"; break;
+                    case 'jpg': type = "image/jpeg"; break;
+                    case 'jpeg': type = "image/jpeg"; break;
+                    case 'webp': type = "image/webp"; break;
+                    case 'gif': type = "image/gif"; break;
+                    case 'svg': type = "image/svg+xml"; break;
+                    case 'bmp': type = "image/bmp"; break;
+                    case 'ico': type = "image/x-icon"; break;
+
+                    // vid
+                    case 'mp4': type = "video/mp4"; break;
+                    case 'webm': type = "video/webm"; break;
+                    case 'avi': type = "video/x-msvideo"; break;
+                    case 'mov': type = "video/quicktime"; break;
+                    case 'mkv': type = "video/x-matroska"; break;
+
+                    // aud
+                    case 'mp3': type = "audio/mpeg"; break;
+                    case 'wav': type = "audio/wav"; break;
+                    case 'ogg': type = "audio/ogg"; break;
+                    case 'flac': type = "audio/flac"; break;
+                    case 'aac': type = "audio/aac"; break;
+                    case 'opus': type = "audio/opus"; break;
+
+                    // doc
+                    case 'pdf': type = "application/pdf"; break;
+                    case 'doc': type = "application/msword"; break;
+                    case 'docx': type = "application/vnd.openxmlformats-officedocument.wordprocessingml.document"; break;
+                    case 'xls': type = "application/vnd.ms-excel"; break;
+                    case 'xlsx': type = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"; break;
+                    case 'ppt': type = "application/vnd.ms-powerpoint"; break;
+                    case 'pptx': type = "application/vnd.openxmlformats-officedocument.presentationml.presentation"; break;
+                    case 'txt': type = "text/plain"; break;
+                    case 'csv': type = "text/csv"; break;
+                    case 'json': type = "application/json"; break;
+                    case 'xml': type = "application/xml"; break;
+                    case 'html': type = "text/html"; break;
+
+                    // comp
+                    case 'zip': type = "application/zip"; break;
+                    case 'rar': type = "application/x-rar-compressed"; break;
+                    case 'tar': type = "application/x-tar"; break;
+                    case 'gz:':  type ="application/gzip"; break;
+
+                    // code
+                    case 'js:':  type ="application/javascript"; break;
+                    case 'css': type = "text/css"; break;
+                    case 'php': type = "application/x-httpd-php"; break;
+                    case 'py:':  type ="text/x-python"; break;
+                    case 'java': type = "text/x-java-source"; break;
+                    case 'cpp': type = "text/x-c++"; break;
+                    case 'ts':  type ="application/typescript"; break;
+                    case 'sh':  type ="application/x-sh"; break;
+
+                    // other
+                    case 'iso': type = "application/x-iso9660-image"; break;
+                    case 'dmg': type = "application/x-apple-diskimage"; break;
+                    case 'exe': type = "application/vnd.microsoft.portable-executable"; break;
+                    case 'apk': type = "application/vnd.android.package-archive"; break;
+                  }
+                  type = 'data:' + type +';base64,'
+
+                  document.getElementById("docsContainer").innerHTML += `
+                    <a class="glass p-3 rounded-lg flex items-center grow" href='${type}${doc.content}' download='${doc.name}'>
+                      <div class="w-10 h-10 glass-light rounded-lg flex items-center justify-center mr-3">
+                        <i class="fas fa-file-image text-${colors[Math.floor(Math.random() * colors.length)]}-400"></i>
+                      </div>
+                      <div class="flex-1 overflow-hidden">
+                        <p class="text-sm font-medium truncate">${doc.name}</p>
+                        <p class="text-xs text-white/50">${Number(doc.size).toFixed(2)} MB • ${doc.createdAt}</p>
+                      </div>
+                      <div class="w-7 h-7 glass-light rounded-full flex items-center justify-center cursor-pointer">
+                        <i class="fas fa-download text-xs"></i>
+                      </div>
+                    </a>
+                  `
+                });
+
+                (data.cmnts || []).forEach(cmnt => {
+                  document.getElementById("cmntsContainer").innerHTML += `
+                    <div class="flex items-start">
+                      <div class="w-8 h-8 rounded-full overflow-hidden bg-purple-500 flex items-center justify-center text-xs font-bold mr-3 mt-1">${'<img src="' + cmnt.img + '" class="w-full h-full" />' || generateAvatar(cmnt.firstname)}</div>
+                      <div class="flex-1">
+                        <div class="flex items-center mb-1">
+                          <span class="font-medium text-sm">${cmnt.firstname} ${cmnt.lastname}</span>
+                          <span class="text-white/50 text-xs ml-2">${cmnt.createdAt.split(" ")[0]} • ${cmnt.createdAt.split(" ")[1]}</span>
+                        </div>
+                        <p class="text-sm">${cmnt.content}</p>
+                      </div>
+                    </div>
+                  `
+                });
+
+                updateTaskStatus(data)
+              } catch (error) {
+                console.error('Complete Error:', error);
+                window.parent.showErrorPane(`An error occurred while loading task data: ${error.message}`);
+            }
+        }
+
+        function generateAvatar(firstname) {
+          if (!firstname) return ''
+          let avatar = ''
+          const colors = ['bg-indigo-500', 'bg-purple-500', 'bg-pink-500', 'bg-blue-500', 'bg-green-500'];
+          
+          const initials = firstname.substring(0, 2).split("").map(n => n[0]).join('').toUpperCase();
+          const colorClass = colors[Math.floor(Math.random() * (5 - 0) + 0)];
+          avatar += `<div class="w-7 h-7 rounded-full ${colorClass} flex items-center justify-center text-xs font-bold " title="${firstname}">${initials}</div>`
+          
+          return avatar;
+        }
+        
+        function openPopup(page) {
+            document.getElementsByTagName('iframe')[0].src = page
+            document.getElementById("popup").classList.remove('hidden')
+            gsap.killTweensOf("iframe");
+            gsap.set("iframe", { clearProps: "all" });
+            gsap.from("iframe", { w: 0, h: 0, y:'100%', opacity: 0, duration: 1, ease: 'elastic.out' })
+        }
+
+        function closePopup() {
+            document.getElementById("popup").classList.add('hidden')
+        }
+
+        document.getElementById("popup").onclick = () => closePopup()
+        document.getElementById("addDoc").onclick = () => openPopup(`addDoc.html?taskID=${taskID}`)
+        
+        async function addSubtask() {
+          let name = prompt("Subtask Name: ")
+          if(!name) return
+
+          fetch('../../controllers/addSubtask.php', {
+            method: 'POST',
+            body: JSON.stringify({ taskID, name })
+          })
+          .then(response => response.json())
+          .then(data => {
+              if (data.status == "error") {
+                console.error('Else Error: ' + data.message);
+              } else {
+                window.parent.showSuccessPane("Subtask added succesfuly");
+                window.location.reload()
+              }
+          })
+          .catch(error => {
+              console.log('Catch Error: ' + error);
+          })
+        }
+        
+        async function addCmnt() {
+          let content = prompt("Add a comment: ")
+          if(!content) return
+
+          fetch('../../controllers/addCmnt.php', {
+              method: 'POST',
+              body: JSON.stringify({ taskID, userID: session.id, content })
+          })
+          .then(response => response.json())
+          .then(data => {
+              if (data.status == "error") {
+                console.error('Else Error: ' + data.message);
+                window.parent.showErrorPane("Error: " + data.message);
+              } else {
+                window.parent.showSuccessPane("Comment added succesfuly");
+              }
+          })
+          .catch(error => {
+              console.log('Catch Error: ' + error);
+              window.parent.showErrorPane("Error: " + error);
+          })
+        }
+    
+        function updateTaskStatus(data) {
+          let subtasks = document.getElementsByClassName("subtask");
+          let task = data.task
+
+          Array.from(subtasks).forEach(subtask => {
+            subtask.querySelector("input").onchange = async() => {
+              checkSubtask(subtask.id, subtask.querySelector("input").checked ? "done" : "todo")
+              let allChecked = true;
+              for (let i=0; i<subtasks.length; i++) {
+                if (!subtasks[i].querySelector("input").checked) {
+                  allChecked = false;
+                  break;
+                }
+              }
+              let status = allChecked ? "done" : "ongoing"
+
+              try {
+                  const response = await fetch('../../controllers/updateTask.php', {
+                      method: 'POST',
+                      headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+                      body: JSON.stringify({ taskID, name: task.name, deadline: task.deadline, status, userID: task.userID, descr: task.descr })
+                  });
+
+                  const data = response.ok ? await response.json() : (async() => { throw new Error(await response.text()) })();
+
+                  if (data.status === "success") {
+                      console.log(data);
+                  } else throw new Error(data.message || 'Unknown error');
+
+              } catch (error) {
+                  console.error('Error:', error);
+              }
+            };
+          });
+        }
+
+        async function checkSubtask(subtaskID, status) {
+          fetch('../../controllers/updateSubtask.php', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+              body: JSON.stringify({ subtaskID, status })
+          })
+          .then(res => res.json())
+          .then(data => {
+            if (data.status === "success") {
+              console.log(data);
+              window.parent.showSuccessPane(data.message);
+            }
+            else throw new Error(data.message || 'Unknown error');
+          })
+          .catch(err => window.parent.showErrorPane('Error: ' + err))
+        }
+    </script>
+</body>
+</html>

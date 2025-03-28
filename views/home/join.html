@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Project Form</title>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="home.css">
+</head>
+<style>
+    body {
+        background-image: none !important;
+    }
+
+    @keyframes fadeOut {
+        from {
+            opacity: 1;
+        }
+
+        to {
+            opacity: 0;
+            transform: translateY(-20px);
+        }
+    }
+
+    .animate-fade-out {
+        animation: fadeOut 0.5s ease-in-out forwards;
+    }
+</style>
+
+<body class="bg-transparent h-screen flex items-center justify-center">
+    <div class="glass backdrop-blur-md rounded-lg shadow-2xl p-8 max-w-md w-full border border-white border-opacity-10">
+        <h1 class="text-3xl font-bold text-white mb-6 text-center">Join Project</h1>
+        <form id="projectForm" class="space-y-6">
+            <div>
+                <label for="code" class="block text-sm font-semibold text-gray-200">Project Code:</label>
+                <input autocomplete="off" placeholder="XXXXXXXX" type="text" id="code" name="code" required class="mt-1 block w-full px-4 py-2 bg-white bg-opacity-10 border border-white border-opacity-20 rounded-md text-white placeholder-gray-300 focus:outline-none focus:ring-2 focus:ring-gray-800 focus:border-transparent text-center">
+            </div>
+            <div class="flex space-x-4 h-10">
+                <button type="submit" class="glass-light hover:bg-black flex-1 px-4 py-2 bg-blue-600 bg-opacity-80 text-white font-semibold rounded-md hover:bg-opacity-100 focus:outline-none focus:ring-2 focus:ring-blue-500 transition duration-300">
+                    Join
+                </button>
+                <button type="button" id="scanButton" class="glass-light hover:bg-black flex px-4 py-2 bg-purple-600 bg-opacity-80 text-white font-semibold rounded-md hover:bg-opacity-100 focus:outline-none focus:ring-2 focus:ring-purple-500 transition duration-300">
+                    <svg class="h-full" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v1m6 11h2m-6 0h-2v4m0-11v3m0 0h.01M12 12h4.01M16 20h4M4 12h4m12 0h.01M5 8h2a1 1 0 001-1V5a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1zm12 0h2a1 1 0 001-1V5a1 1 0 00-1-1h-2a1 1 0 00-1 1v2a1 1 0 001 1zM5 20h2a1 1 0 001-1v-2a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1z" /></svg>
+                    <span class="">Scan QR</span>
+                </button>
+            </div>
+        </form>
+    </div>
+
+    <script>
+        let session = null;
+
+        fetch('../../lib/session.php')
+            .then(res => res.json())
+            .then(data => {
+                if (data.status === 'success') session = data.user;
+                else window.parent.location.href = '../auth/';
+            })
+            .catch(err => console.error("Not Connected"));
+
+        document.getElementById('projectForm').addEventListener('submit', function (event) {
+            event.preventDefault();
+
+            const form = document.getElementById('projectForm');
+            const complaitedPopup = document.getElementById('complaitedPopup');
+            const title = document.querySelector('h1');
+
+            title.classList.add('hidden');
+            form.classList.add('animate-fade-out');
+
+            const userID = session.id;
+            const code = document.getElementById('code').value;
+
+            fetch("../../controllers/joinProject.php", {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ userID, code })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.status === 'success') {
+                    window.parent.showSuccessPane("Project joined successfully! 🎉");
+                } else if (data.message === "You Already join This Project  !!!"){
+                    window.parent.showErrorPane("You Already join This Project. 🤔");
+                } else if (data.message === "This Project is Completed !!!") {
+                    window.parent.showErrorPane("This Project Is Full. 🤔");
+                }
+                else {
+                    window.parent.showErrorPane("Oops! The project does not exist. 😢");
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                window.parent.showErrorPane("Oops! The project does not exist. 😢");
+            })
+            .finally(() => {
+                setTimeout(() => {
+                    form.reset();
+                    form.classList.remove('animate-fade-out');
+                    title.classList.remove('hidden');
+                }, 3000);
+            });
+        });
+    </script>
+</body>
+
+</html>
+
+
+

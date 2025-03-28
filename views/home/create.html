@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Project Form</title>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="home.css">
+</head>
+<style>
+    body {
+        background-image: none !important;
+    }
+
+    @keyframes fadeOut {
+        from {
+            opacity: 1;
+        }
+
+        to {
+            opacity: 0;
+            transform: translateY(-20px);
+        }
+    }
+
+    .animate-fade-out {
+        animation: fadeOut 0.5s ease-in-out forwards;
+    }
+
+    .hidden {
+        display: none;
+    }
+
+    /* Optionnel : style au survol */
+    option:hover {
+        background-color: #93c5fd !important;
+        /* bleu un peu plus foncé */
+    }
+</style>
+
+<body class="bg-transparent h-screen flex items-center justify-center">
+
+    <div id="successPopup"
+        class="hidden fixed top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-green-500 text-white p-6 rounded-lg shadow-lg z-50">
+        Project created successfully! 🎉
+    </div>
+
+    <div class="glass backdrop-blur-md rounded-lg shadow-2xl p-8 max-w-md w-full border border-white border-opacity-10">
+        <h1 class="text-3xl font-bold text-white mb-6 text-center">Create a New Project</h1>
+        <form id="projectForm" class="space-y-6">
+            <div>
+                <label for="name" class="block text-sm font-semibold text-gray-200">Project Name:</label>
+                <input type="text" id="name" name="name" required
+                    class="mt-1 block w-full px-4 py-2 bg-white bg-opacity-10 border border-white border-opacity-20 rounded-md text-white placeholder-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+            </div>
+            <div>
+                <label for="deadline" class="block text-sm font-semibold text-gray-200">Deadline:</label>
+                <input type="date" id="deadline" name="deadline" required
+                    class="mt-1 block w-full px-4 py-2 bg-white bg-opacity-10 border border-white border-opacity-20 rounded-md text-white placeholder-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+            </div>
+            <div>
+                <label for="maxMembers" class="block text-sm font-semibold text-gray-200">Max Members:</label>
+                <input type="number" min="0" max="8" id="maxMembers" name="maxMembers" required
+                    class="mt-1 block w-full px-4 py-2 bg-white bg-opacity-10 border border-white border-opacity-20 rounded-md text-white placeholder-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+            </div>
+            <div>
+                <label for="slogan" class="block text-sm font-semibold text-gray-200">Slogan:</label>
+                <input type="text" id="slogan" name="slogan"
+                    class="mt-1 block w-full px-4 py-2 bg-white bg-opacity-10 border border-white border-opacity-20 rounded-md text-white placeholder-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+            </div>
+            <div>
+                <label for="type" class="block text-sm font-semibold text-gray-200">Project Type:</label>
+                <select id="type" name="type" required
+                    class="mt-1 block w-full px-4 py-2 bg-blue bg-opacity-10 border border-white border-opacity-20 rounded-md text-white placeholder-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                    <option value="" disabled selected class="text-gray-400 bg-gray-700">Choisissez un type de projet
+                    </option>
+                    <option value="Développement Web" class="text-gray-900 bg-blue-100">Développement Web</option>
+                    <option value="Développement Mobile" class="text-gray-900 bg-blue-100">Développement Mobile</option>
+                    <option value="Développement Logiciel" class="text-gray-900 bg-blue-100">Développement Logiciel
+                    </option>
+                    <option value="Design Graphique" class="text-gray-900 bg-blue-100">Design Graphique</option>
+                    <option value="Design d'Interface Utilisateur (UI)" class="text-gray-900 bg-blue-100">Design
+                        d'Interface
+                        Utilisateur (UI)</option>
+                    <option value="Expérience Utilisateur (UX)" class="text-gray-900 bg-blue-100">Expérience Utilisateur
+                        (UX)
+                    </option>
+                    <option value="Marketing Digital" class="text-gray-900 bg-blue-100">Marketing Digital</option>
+                    <option value="Stratégie de Contenu" class="text-gray-900 bg-blue-100">Stratégie de Contenu</option>
+                    <option value="Référencement (SEO)" class="text-gray-900 bg-blue-100">Référencement (SEO)</option>
+                    <option value="Publicité en Ligne (SEM)" class="text-gray-900 bg-blue-100">Publicité en Ligne (SEM)
+                    </option>
+                    <option value="Gestion de Réseaux Sociaux" class="text-gray-900 bg-blue-100">Gestion de Réseaux
+                        Sociaux</option>
+                    <option value="Analyse de Données" class="text-gray-900 bg-blue-100">Analyse de Données</option>
+                    <option value="Intelligence Artificielle (IA)" class="text-gray-900 bg-blue-100">Intelligence
+                        Artificielle (IA)
+                    </option>
+                    <option value="Apprentissage Automatique (Machine Learning)" class="text-gray-900 bg-blue-100">
+                        Apprentissage
+                        Automatique (Machine Learning)</option>
+                    <option value="Développement de Jeux Vidéo" class="text-gray-900 bg-blue-100">Développement de Jeux
+                        Vidéo
+                    </option>
+                    <option value="Réalité Virtuelle (VR) / Réalité Augmentée (AR)" class="text-gray-900 bg-blue-100">
+                        Réalité
+                        Virtuelle (VR) / Réalité Augmentée (AR)</option>
+                    <option value="Blockchain et Cryptomonnaies" class="text-gray-900 bg-blue-100">Blockchain et
+                        Cryptomonnaies
+                    </option>
+                    <option value="Cybersécurité" class="text-gray-900 bg-blue-100">Cybersécurité</option>
+                    <option value="Infrastructure Cloud" class="text-gray-900 bg-blue-100">Infrastructure Cloud</option>
+                    <option value="DevOps" class="text-gray-900 bg-blue-100">DevOps</option>
+                    <option value="Gestion de Projet" class="text-gray-900 bg-blue-100">Gestion de Projet</option>
+                    <option value="Consultance en Technologie" class="text-gray-900 bg-blue-100">Consultance en
+                        Technologie</option>
+                    <option value="Recherche et Développement (R&D)" class="text-gray-900 bg-blue-100">Recherche et
+                        Développement
+                        (R&D)</option>
+                    <option value="Événementiel" class="text-gray-900 bg-blue-100">Événementiel</option>
+                    <option value="Formation et Éducation" class="text-gray-900 bg-blue-100">Formation et Éducation
+                    </option>
+                    <option value="Santé et Bien-être" class="text-gray-900 bg-blue-100">Santé et Bien-être</option>
+                    <option value="Environnement et Développement Durable" class="text-gray-900 bg-blue-100">
+                        Environnement et
+                        Développement Durable</option>
+                    <option value="Ingénierie" class="text-gray-900 bg-blue-100">Ingénierie</option>
+                    <option value="Architecture" class="text-gray-900 bg-blue-100">Architecture</option>
+                    <option value="Autre" class="text-gray-900 bg-blue-100">Autre</option>
+                </select>
+            </div>
+            <button type="submit"
+                class="glass-light hover:bg-black w-full px-4 py-2 bg-blue-600 bg-opacity-80 text-white font-semibold rounded-md hover:bg-opacity-100 focus:outline-none focus:ring-2 focus:ring-blue-500 transition duration-300">
+                Create
+            </button>
+        </form>
+    </div>
+
+    <script>
+        let session = null
+        fetch('../../lib/session.php').then(res => res.json()).then(data => {
+            if (data.status === 'success') session = data.user
+            else window.parent.location.href = '../auth/'
+        }).catch(err => console.log("Not Connected"))
+
+        // -------------------------- bach nsifto Data 
+        document.getElementById("projectForm").onsubmit = function (event) {
+            event.preventDefault();
+
+            let userID = session.id;
+            let name = document.getElementById("name").value;
+            let deadline = document.getElementById("deadline").value;
+            let slogan = document.getElementById("slogan").value;
+            let maxMembers = document.getElementById("maxMembers").value;
+            let type = document.getElementById("type").value;
+
+            fetch("../../controllers/addProject.php", {
+                method: 'POST',
+                body: JSON.stringify({ userID, name, deadline, maxMembers, slogan, type })
+            })
+                .then(res => res.json())
+                .then(data => window.parent.showSuccessPane('Project was created !'))
+                .then(error => window.parent.showErrorPane('Error:', error));
+
+
+        };
+        // ---------------------------------------------------
+        /*
+        function addProject(){
+            let userID = 1
+            let name = document.getElementById("name").value
+            let deadline = document.getElementById("deadline").value
+            let slogan = document.getElementById("slogan").value
+            let maxMembers = document.getElementById("maxMembers").value
+            let type = document.getElementById("type").value
+            document.querySelector("form").onsubmit = () => {
+                fetch("../../controllers/addProject.php", {
+                    method: 'POST',
+                    body: JSON.stringify({userID, name, deadline, slogan, maxMembers, type})
+                })
+                .then(res => res.json())
+                .then(data => alert("succes"))
+            }
+        }
+            */
+    </script>
+</body>
+
+</html>
