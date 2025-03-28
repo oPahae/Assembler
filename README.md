@@ -6,7 +6,7 @@ Bienvenue sur **Gestion de Projets Collaboratifs**, une plateforme innovante per
 
 ### 1️⃣ Cloner le projet
 ```bash
-git clone https://github.com/ton-user/ton-repo.git
+git clone https://github.com/oPahae/Assembler.git
 cd ton-repo
 ```
 
@@ -14,6 +14,28 @@ cd ton-repo
 Assurez-vous d'avoir phpmailer installé avec cette commande :
 ```bash
 composer install
+```
+
+# 🚀 Gestion de Projets Collaboratifs
+
+Bienvenue sur **Gestion de Projets Collaboratifs**, une plateforme innovante permettant aux étudiants et aux professeurs de gérer efficacement leurs projets en équipe.
+
+## 📥 Installation & Configuration
+
+### 1️⃣ Cloner le projet
+```bash
+git clone https://github.com/ton-user/ton-repo.git
+cd ton-repo
+```
+
+### 2️⃣ Installer les dépendances
+Assurez-vous d'avoir **Node.js** et **npm** installés.
+```bash
+npm install
+```
+Lancez le serveur Express (utilisé seulement pour l'appel vocale).
+```bash
+node lib/server.js
 ```
 
 ### 3️⃣ Lancer le projet
