@@ -1,31 +1,18 @@
 # 🚀 Gestion de Projets Collaboratifs
 
-Bienvenue sur **Gestion de Projets Collaboratifs**, une plateforme innovante permettant aux étudiants et aux professeurs de gérer efficacement leurs projets en équipe.
+Bienvenue sur **Assembler**, une plateforme innovante permettant aux étudiants et aux professeurs de gérer efficacement leurs projets en équipe.
 
 ## 📥 Installation & Configuration
 
 ### 1️⃣ Cloner le projet
 ```bash
 git clone https://github.com/oPahae/Assembler.git
-cd ton-repo
 ```
 
 ### 2️⃣ Installer les dépendances
 Assurez-vous d'avoir phpmailer installé avec cette commande :
 ```bash
 composer install
-```
-
-# 🚀 Gestion de Projets Collaboratifs
-
-Bienvenue sur **Gestion de Projets Collaboratifs**, une plateforme innovante permettant aux étudiants et aux professeurs de gérer efficacement leurs projets en équipe.
-
-## 📥 Installation & Configuration
-
-### 1️⃣ Cloner le projet
-```bash
-git clone https://github.com/ton-user/ton-repo.git
-cd ton-repo
 ```
 
 ### 2️⃣ Installer les dépendances
